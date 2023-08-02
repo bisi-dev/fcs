@@ -4,6 +4,7 @@
 __pycache__
 media
 quickwork.py
+.DS_Store
 
 # Environments 
 .env 
