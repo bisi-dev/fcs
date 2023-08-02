@@ -3,6 +3,7 @@
 *.pyc
 __pycache__
 media
+quickwork.py
 
 # Environments 
 .env 
