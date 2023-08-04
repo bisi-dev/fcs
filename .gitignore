@@ -5,6 +5,8 @@ __pycache__
 media
 quickwork.py
 .DS_Store
+*.sqlite3
+*.csv
 
 # Environments 
 .env 

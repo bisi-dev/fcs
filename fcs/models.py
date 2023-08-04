@@ -14,4 +14,9 @@ class Filling(models.Model):
     investment_discretion = models.CharField(max_length=20)
     voting_info = models.CharField(max_length=100)
     quarter_info = models.CharField(max_length=100, default="NA")
+
+class Issuer(models.Model):
+    name = models.CharField(max_length=255)
+    cusip = models.CharField(max_length=10)
+    ticker = models.CharField(max_length=10)
     
