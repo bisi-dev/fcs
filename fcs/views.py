@@ -10,7 +10,6 @@ import requests
 import json
 from types import SimpleNamespace
 
-
 quarter_list = ['Q2 2023','Q1 2023','Q4 2022', 'Q3 2022', 'Q2 2022', 'Q1 2022', 'Q4 2021', 'Q3 2021', 'Q2 2021', 'Q1 2021', 'Q4 2020', 'Q3 2020', 'Q2 2020', 'Q1 2020', 'Q4 2019', 'Q3 2019', 'Q2 2019', 'Q1 2019', 'Q4 2018', 'Q3 2018']
 
 def index(request):
@@ -22,7 +21,9 @@ def manager(request, slug):
    quart = request.GET.get('q')
    fund_company = FundCompany.objects.get(cik_id = slug)
 
-   #Crash on Server, Works on Local
+   data = {}
+   hasdata = False
+   # Crash on Server, Works on Local
    # try:
    #    url = f"https://data.sec.gov/submissions/CIK{slug}.json"
    #    response = requests.get(url, headers={"User-Agent": request.META['HTTP_USER_AGENT']})
@@ -30,9 +31,7 @@ def manager(request, slug):
    #    data = json.loads(textResponse, object_hook=lambda d: SimpleNamespace(**d))
    #    hasdata = True
    # except:
-   #    data = {}; 
-   #    hasdata = False  
-   # return render(request, 'manager.html', {'fund_company': fund_company, 'data': data, 'hasdata': hasdata})
+   #    print("crash")
 
    positions = Filling.objects.filter(cik_id = slug)
    positions_list = []
@@ -41,19 +40,29 @@ def manager(request, slug):
       issuer = Issuer.objects.get(cusip = x.cusip).name
       ticker = Issuer.objects.get(cusip = x.cusip).ticker
       value = x.value
-      shares = x.shares.replace("SH", "")
+      shares = x.shares.replace("SH", "").replace("PRN", "")
       date = x.quarter_info
       dater = datetime.strptime(date, "%m-%d-%Y")
       quarter = assign_quarter(dater)
-      quarter = quarter
       positions_list.append(ManagerPositionsView(cusip, issuer,ticker, value, shares, date, quarter))
    
    if((quart is None) == False):
          quart = str(quart).replace("%", " ")
          if(quart != ""):
             positions_list = [value for value in positions_list if value.quarter == quart]
+   else:
+      quart = "All Quarters"  
 
-   return render(request, 'manager.html', {'fund_company': fund_company, 'data': {}, 'hasdata': False, 'positions' : positions_list, 'quarters' : quarter_list})
+   shares_data = [['Issuer', 'Shares']]
+   for p in positions_list:
+      shares_data.append([p.issuer, int(float(p.shares))])               
+
+   return render(request, 'manager.html', {'fund_company': fund_company, 
+                                           'data': data, 'hasdata': hasdata, 
+                                           'positions' : positions_list, 
+                                           'quarters' : quarter_list,
+                                           'quart': quart,
+                                           'shares_data': shares_data})
 
 def issuer(request, slug):
    quart = request.GET.get('q')
@@ -65,19 +74,28 @@ def issuer(request, slug):
       cik = x.cik_id
       manager = FundCompany.objects.get(cik_id = x.cik_id).name
       value = x.value
-      shares = x.shares.replace("SH", "")
+      shares = x.shares.replace("SH", "").replace("PRN", "")
       date = x.quarter_info
       dater = datetime.strptime(date, "%m-%d-%Y")
       quarter = assign_quarter(dater)
-      quarter = quarter
       positions_list.append(IssuerPositionsView(cik, manager, value, shares, date, quarter))
 
    if((quart is None) == False):
-         quart = str(quart).replace("%", " ")
-         if(quart != ""):
-            positions_list = [value for value in positions_list if value.quarter == quart]
+      quart = str(quart).replace("%", " ")
+      if(quart != ""):
+         positions_list = [value for value in positions_list if value.quarter == quart]
+   else:
+      quart = "All Quarters"
+
+   shares_data = [['Manager', 'Shares']]
+   for p in positions_list:
+      shares_data.append([p.manager, int(float(p.shares))])         
    
-   return render(request, 'issuer.html', {'issuer': issuer, 'positions' : positions_list, 'quarters' : quarter_list})
+   return render(request, 'issuer.html', {'issuer': issuer, 
+                                          'positions' : positions_list, 
+                                          'quarters' : quarter_list,
+                                          'quart': quart,
+                                          'shares_data': shares_data})
 
 
 class IssuerPositionsView:
