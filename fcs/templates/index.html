@@ -63,6 +63,13 @@
       #content{
         display: none;
       }
+      table thead tr th.sort-asc:after {
+        content: "\25b4";
+      }
+
+      table thead tr th.sort-desc:after {
+        content: "\25be";
+      }
     </style>
 </head>
 <body>
@@ -104,7 +111,7 @@
               <tbody>
                 {% for fund_company in fund_companies %}
                   <tr onclick="$('#loading').show(); window.location='cik/{{ fund_company.cik_id }}';">
-                    <th scope="row">{{ fund_company.id }}</th>
+                    <td scope="row">{{ fund_company.id }}</td>
                     <td>{{ fund_company.name }}</td>
                     <!-- <td class = "cik">{{ fund_company.cik_id }}</td> -->
                   </tr>
@@ -128,7 +135,7 @@
               <tbody>
                 {% for issuer in issuers %}
                   <tr onclick="$('#loading').show(); window.location='cusip/{{ issuer.cusip }}';">
-                    <th scope="row">{{ issuer.id }}</th>
+                    <td scope="row">{{ issuer.id }}</td>
                     <td>{{ issuer.name }}</td>
                     <td>{{ issuer.ticker }}</td>
                   </tr>
@@ -141,5 +148,37 @@
       <!-- <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">...</div> -->
     </div>
   </div>
+  <script>
+    function TableCellValue(row, index) {
+      return $(row).children("td").eq(index).text();
+    }
+    
+    function TableComparer(index) {
+      return function(a, b) {
+        var val_a = TableCellValue(a, index);
+        var val_b = TableCellValue(b, index);
+        var result = ($.isNumeric(val_a) && $.isNumeric(val_b)) ? val_a - val_b : val_a.toString().localeCompare(val_b);
+
+        return result;
+      }
+    }
+
+    $(document).on("click", "table thead tr th:not(.no-sort)", function() {
+      var table = $(this).parents("table");
+      var rows = $(this).parents("table").find("tbody tr").toArray().sort(TableComparer($(this).index()));
+      var dir = ($(this).hasClass("sort-asc")) ? "desc" : "asc";
+
+      if (dir == "desc") {
+        rows = rows.reverse();
+      }
+
+      for (var i = 0; i < rows.length; i++) {
+        table.append(rows[i]);
+      }
+
+      table.find("thead tr th").removeClass("sort-asc").removeClass("sort-desc");
+      $(this).removeClass("sort-asc").removeClass("sort-desc") .addClass("sort-" + dir);
+    });
+  </script>
 </body>
 </html>
