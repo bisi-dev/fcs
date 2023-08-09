@@ -46,23 +46,48 @@ def manager(request, slug):
       quarter = assign_quarter(dater)
       positions_list.append(ManagerPositionsView(cusip, issuer,ticker, value, shares, date, quarter))
    
+   time_series = []
    if((quart is None) == False):
          quart = str(quart).replace("%", " ")
          if(quart != ""):
             positions_list = [value for value in positions_list if value.quarter == quart]
+            time_series = [['Issuer', quart]]
+            for p in positions_list:
+               data = []
+               if(p.quarter == quart):
+                  data = [p.ticker, int(float(p.shares))]
+                  time_series.append(data)                                 
    else:
-      quart = "All Quarters"  
+      quart = "All Quarters"
+      title = ['Issuer']
+      for q in quarter_list:
+         title.append(q)
+      time_series = [title]
+      headers = time_series[0]
+
+      for p in positions_list:
+         issuer_index = headers.index('Issuer')
+         q_index = headers.index(p.quarter)
+         existing_issuers = [row[0] for row in time_series]
+         if(p.ticker in existing_issuers):
+            p_index = existing_issuers.index(p.ticker)
+            time_series[p_index][q_index] = int(float(p.shares))
+         else:
+            new_row = [p.ticker] + [0.0] * (q_index - 1) + [int(float(p.shares))] + [0.0] * (len(time_series[0]) - (1 + q_index))
+            time_series.append(new_row) 
+      
 
    shares_data = [['Issuer', 'Shares']]
-   for p in positions_list:
-      shares_data.append([p.issuer, int(float(p.shares))])               
-
+   # for p in positions_list:
+   #    shares_data.append([p.issuer, int(float(p.shares))])
+         
    return render(request, 'manager.html', {'fund_company': fund_company, 
                                            'data': data, 'hasdata': hasdata, 
                                            'positions' : positions_list, 
                                            'quarters' : quarter_list,
                                            'quart': quart,
-                                           'shares_data': shares_data})
+                                           'shares_data': shares_data,
+                                           'time_series': time_series})
 
 def issuer(request, slug):
    quart = request.GET.get('q')

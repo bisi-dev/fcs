@@ -161,8 +161,11 @@
   <script>
     function myFunction(quarter) {
       $(".dropdown-menu").toggle()
-      window.location='?q=' + quarter
-      window.location.replace(newUrl);
+      if(quarter == ''){
+        window.location="?all"
+      }else{
+        window.location='?q=' + quarter
+      }
     }
     function drop(){
       $(".dropdown-menu").show()

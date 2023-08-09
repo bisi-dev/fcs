@@ -161,24 +161,59 @@
       </div>
       <div class="tab-pane fade" id="pills-issuers" role="tabpanel" aria-labelledby="pills-issuers-tab">
         <h1 class ="ml-2">{{quart}}</h1>
-        <div class="shadow p-4 mb-4 bg-white">
-          <div  id="myChart"></div>
-        </div>
+        <div id="chart_all"></div>
+        <!-- <div class="shadow p-4 mb-4 bg-white">
+          {% if quart == "All Quarters" %}
+          {% else %}
+          <div  id="chart_all"></div>
+          {% endif %}
+        </div> -->
       </div>
     </div>
   </div>
   <script>
     function myFunction(quarter) {
       $(".dropdown-menu").toggle()
-      window.location='?q=' + quarter
-      window.location.replace(newUrl);
+      if(quarter == ''){
+        window.location="?all"
+      }else{
+        window.location='?q=' + quarter
+      }
     }
     function drop(){
       $(".dropdown-menu").show()
     }
   </script>
-  {{ shares_data|json_script:"shares_data" }}
+  {{ time_series|json_script:"time_series" }}
   <script>
+    var time_series = JSON.parse(document.getElementById('time_series').textContent)
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable(time_series);
+
+      var options = {
+        title: '',
+        vAxis: {title: 'Shares'},
+        isStacked: true,
+        width: 1300,
+        height: 800,
+        hAxis: {title: 'Securities', textStyle:{ fontSize: 7}},
+        explorer: {
+          maxZoomOut:2,
+          keepInBounds: true
+        }
+      };
+
+      var chart = new google.visualization.SteppedAreaChart(document.getElementById('chart_all'));
+
+      chart.draw(data, options);
+    }
+  </script>
+  {{ shares_data|json_script:"shares_data" }}
+  <!-- <script>
     var shares_data = JSON.parse(document.getElementById('shares_data').textContent)
 
     google.charts.load('current',{packages:['corechart']});
@@ -200,7 +235,7 @@
       chart.draw(data, options);
       
     }
-  </script>
+  </script> -->
   <script>
     function TableCellValue(row, index) {
       return $(row).children("td").eq(index).text();
