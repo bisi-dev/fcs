@@ -105,16 +105,22 @@ def issuer(request, slug):
       quarter = assign_quarter(dater)
       positions_list.append(IssuerPositionsView(cik, manager, value, shares, date, quarter))
 
+   shares_data = [['Manager', 'Shares']]
    if((quart is None) == False):
       quart = str(quart).replace("%", " ")
       if(quart != ""):
          positions_list = [value for value in positions_list if value.quarter == quart]
+         for p in positions_list:
+            shares_data.append([p.manager, int(float(p.shares))]) 
    else:
-      quart = "All Quarters"
-
-   shares_data = [['Manager', 'Shares']]
-   for p in positions_list:
-      shares_data.append([p.manager, int(float(p.shares))])         
+      quart = "All Quarters" 
+      for p in positions_list:
+         existing_managers = [row[0] for row in shares_data]
+         if(p.manager in existing_managers):
+            p_index = existing_managers.index(p.manager)
+            shares_data[p_index][1] = shares_data[p_index][1] + int(float(p.shares))
+         else:
+            shares_data.append([p.manager, int(float(p.shares))])       
    
    return render(request, 'issuer.html', {'issuer': issuer, 
                                           'positions' : positions_list, 
