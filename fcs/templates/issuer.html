@@ -136,7 +136,7 @@
               </thead>
               <tbody>
                 {% for position in positions %}
-                  <tr>
+                  <tr onclick="$('#loading').show(); window.location='/cik/{{ position.cik }}';">
                     <td>{{ position.manager }}</td>
                     <td>{{ position.value }}</td>
                     <td>{{ position.shares }}</td>

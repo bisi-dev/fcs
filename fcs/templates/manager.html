@@ -144,7 +144,7 @@
               </thead>
               <tbody>
                 {% for position in positions %}
-                  <tr>
+                  <tr onclick="$('#loading').show(); window.location='/cusip/{{ position.cusip }}';">
                     <td>{{ position.issuer }}</td>
                     <td>{{ position.ticker }}</td>
                     <td>{{ position.value }}</td>
