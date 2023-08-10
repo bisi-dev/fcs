@@ -91,6 +91,7 @@ def manager(request, slug):
 
 def issuer(request, slug):
    quart = request.GET.get('q')
+   quartC = request.GET.get('c')
    issuer = Issuer.objects.get(cusip = slug)
 
    positions = Filling.objects.filter(cusip = slug)
@@ -104,6 +105,16 @@ def issuer(request, slug):
       dater = datetime.strptime(date, "%m-%d-%Y")
       quarter = assign_quarter(dater)
       positions_list.append(IssuerPositionsView(cik, manager, value, shares, date, quarter))
+
+   comp_data = [['Manager', 'Shares']]
+   comp_list = []
+   if((quartC is None) == False):
+      quartC = str(quartC).replace("%", " ")
+      comp_list = [value for value in positions_list if value.quarter == quartC]
+      for p in comp_list:
+         comp_data.append([p.manager, int(float(p.shares))]) 
+   else:
+      quartC = ""  
 
    shares_data = [['Manager', 'Shares']]
    if((quart is None) == False):
@@ -120,13 +131,16 @@ def issuer(request, slug):
             p_index = existing_managers.index(p.manager)
             shares_data[p_index][1] = shares_data[p_index][1] + int(float(p.shares))
          else:
-            shares_data.append([p.manager, int(float(p.shares))])       
-   
+            shares_data.append([p.manager, int(float(p.shares))])
+      
+   positions_list = positions_list + comp_list
    return render(request, 'issuer.html', {'issuer': issuer, 
                                           'positions' : positions_list, 
                                           'quarters' : quarter_list,
                                           'quart': quart,
-                                          'shares_data': shares_data})
+                                          'shares_data': shares_data,
+                                          'quartC': quartC,
+                                          'comp_data': comp_data})
 
 
 class IssuerPositionsView:
