@@ -162,12 +162,6 @@
       <div class="tab-pane fade" id="pills-issuers" role="tabpanel" aria-labelledby="pills-issuers-tab">
         <h1 class ="ml-2">{{quart}}</h1>
         <div id="chart_all"></div>
-        <!-- <div class="shadow p-4 mb-4 bg-white">
-          {% if quart == "All Quarters" %}
-          {% else %}
-          <div  id="chart_all"></div>
-          {% endif %}
-        </div> -->
       </div>
     </div>
   </div>
@@ -212,30 +206,6 @@
       chart.draw(data, options);
     }
   </script>
-  {{ shares_data|json_script:"shares_data" }}
-  <!-- <script>
-    var shares_data = JSON.parse(document.getElementById('shares_data').textContent)
-
-    google.charts.load('current',{packages:['corechart']});
-    google.charts.setOnLoadCallback(drawChart);
-    function drawChart() {
-      
-      const data = google.visualization.arrayToDataTable(shares_data);
-
-      const options = {
-        title: 'Securities Purchased',
-        'is3D':true,
-        'width':800,
-        'height':500,
-        legend: { position: "none" },
-        bar: {groupWidth: "95%"},
-      };
-
-      const chart = new google.visualization.BarChart(document.getElementById('myChart'));
-      chart.draw(data, options);
-      
-    }
-  </script> -->
   <script>
     function TableCellValue(row, index) {
       return $(row).children("td").eq(index).text();

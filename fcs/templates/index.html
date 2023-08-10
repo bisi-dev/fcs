@@ -86,9 +86,6 @@
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="pills-issuers-tab" data-bs-toggle="pill" data-bs-target="#pills-issuers" type="button" role="tab" aria-controls="pills-issuers" aria-selected="false">Securities</button>
         </li>
-        <!-- <li class="nav-item" role="presentation">
-          <button class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" data-bs-target="#pills-contact" type="button" role="tab" aria-controls="pills-contact" aria-selected="false">Positions</button>
-        </li> -->
       </ul>
     </div>
     <div class="shadow p-4 mb-4 bg-white">
@@ -105,7 +102,6 @@
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Name</th>
-                  <!-- <th scope="col">CIK</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -113,7 +109,6 @@
                   <tr onclick="$('#loading').show(); window.location='cik/{{ fund_company.cik_id }}';">
                     <td scope="row">{{ fund_company.id }}</td>
                     <td>{{ fund_company.name }}</td>
-                    <!-- <td class = "cik">{{ fund_company.cik_id }}</td> -->
                   </tr>
                 {% endfor %}
               </tbody>
@@ -145,7 +140,6 @@
           </div>
         </div>
       </div>
-      <!-- <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">...</div> -->
     </div>
   </div>
   <script>

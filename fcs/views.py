@@ -1,16 +1,11 @@
 # example/views.py
 from datetime import datetime
 
-from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from fcs.models import FundCompany, Issuer, Filling
 
-import requests
-import json
-from types import SimpleNamespace
-
-quarter_list = ['Q2 2023','Q1 2023','Q4 2022', 'Q3 2022', 'Q2 2022', 'Q1 2022', 'Q4 2021', 'Q3 2021', 'Q2 2021', 'Q1 2021', 'Q4 2020', 'Q3 2020', 'Q2 2020', 'Q1 2020', 'Q4 2019', 'Q3 2019', 'Q2 2019', 'Q1 2019', 'Q4 2018', 'Q3 2018']
+from datetime import datetime, timedelta
 
 def index(request):
    fund_companies = FundCompany.objects.all()
@@ -20,18 +15,6 @@ def index(request):
 def manager(request, slug):
    quart = request.GET.get('q')
    fund_company = FundCompany.objects.get(cik_id = slug)
-
-   data = {}
-   hasdata = False
-   # Crash on Server, Works on Local
-   # try:
-   #    url = f"https://data.sec.gov/submissions/CIK{slug}.json"
-   #    response = requests.get(url, headers={"User-Agent": request.META['HTTP_USER_AGENT']})
-   #    textResponse = response.text
-   #    data = json.loads(textResponse, object_hook=lambda d: SimpleNamespace(**d))
-   #    hasdata = True
-   # except:
-   #    print("crash")
 
    positions = Filling.objects.filter(cik_id = slug)
    positions_list = []
@@ -75,18 +58,11 @@ def manager(request, slug):
          else:
             new_row = [p.ticker] + [0.0] * (q_index - 1) + [int(float(p.shares))] + [0.0] * (len(time_series[0]) - (1 + q_index))
             time_series.append(new_row) 
-      
-
-   shares_data = [['Issuer', 'Shares']]
-   # for p in positions_list:
-   #    shares_data.append([p.issuer, int(float(p.shares))])
          
-   return render(request, 'manager.html', {'fund_company': fund_company, 
-                                           'data': data, 'hasdata': hasdata, 
+   return render(request, 'manager.html', {'fund_company': fund_company,
                                            'positions' : positions_list, 
                                            'quarters' : quarter_list,
                                            'quart': quart,
-                                           'shares_data': shares_data,
                                            'time_series': time_series})
 
 def issuer(request, slug):
@@ -142,7 +118,6 @@ def issuer(request, slug):
                                           'quartC': quartC,
                                           'comp_data': comp_data})
 
-
 class IssuerPositionsView:
    def __init__(self, cik, manager, value, shares, date, quarter):
     self.cik = cik
@@ -173,3 +148,16 @@ def assign_quarter(date):
       return "Q3 " + str(year)
    else:
       return "Q4 " + str(year)
+   
+def generate_quarters(num_quarters):
+    quarter_list = []
+    current_date = datetime.now() - timedelta(days=60)
+
+    for _ in range(num_quarters):
+        quarter = f"Q{((current_date.month - 1) // 3) + 1} {current_date.year}"
+        quarter_list.append(quarter)
+        current_date -= timedelta(days=365 / 4)
+
+    return quarter_list
+
+quarter_list = generate_quarters(20)
