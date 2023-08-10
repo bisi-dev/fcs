@@ -7,6 +7,10 @@ from fcs.models import FundCompany, Issuer, Filling
 
 from datetime import datetime, timedelta
 
+import locale
+
+locale.setlocale(locale.LC_ALL, '')
+
 def index(request):
    fund_companies = FundCompany.objects.all()
    issuers = Issuer.objects.all()
@@ -22,8 +26,8 @@ def manager(request, slug):
       cusip = x.cusip
       issuer = Issuer.objects.get(cusip = x.cusip).name
       ticker = Issuer.objects.get(cusip = x.cusip).ticker
-      value = x.value
-      shares = x.shares.replace("SH", "").replace("PRN", "")
+      value = locale.format_string("%0.2f", float(x.value), grouping=True)
+      shares = locale.format_string("%0.2f", float(x.shares), grouping=True)
       date = x.quarter_info
       dater = datetime.strptime(date, "%m-%d-%Y")
       quarter = assign_quarter(dater)
@@ -38,7 +42,7 @@ def manager(request, slug):
             for p in positions_list:
                data = []
                if(p.quarter == quart):
-                  data = [p.ticker, int(float(p.shares))]
+                  data = [p.ticker, int(float(p.value.replace(",","")))]
                   time_series.append(data)                                 
    else:
       quart = "All Quarters"
@@ -54,9 +58,9 @@ def manager(request, slug):
          existing_issuers = [row[0] for row in time_series]
          if(p.ticker in existing_issuers):
             p_index = existing_issuers.index(p.ticker)
-            time_series[p_index][q_index] = int(float(p.shares))
+            time_series[p_index][q_index] = int(float(p.value.replace(",","")))
          else:
-            new_row = [p.ticker] + [0.0] * (q_index - 1) + [int(float(p.shares))] + [0.0] * (len(time_series[0]) - (1 + q_index))
+            new_row = [p.ticker] + [0.0] * (q_index - 1) + [int(float(p.value.replace(",","")))] + [0.0] * (len(time_series[0]) - (1 + q_index))
             time_series.append(new_row) 
          
    return render(request, 'manager.html', {'fund_company': fund_company,
@@ -75,8 +79,8 @@ def issuer(request, slug):
    for x in positions:
       cik = x.cik_id
       manager = FundCompany.objects.get(cik_id = x.cik_id).name
-      value = x.value
-      shares = x.shares.replace("SH", "").replace("PRN", "")
+      value = locale.format_string("%0.2f", float(x.value), grouping=True)
+      shares = locale.format_string("%0.2f", float(x.shares), grouping=True)
       date = x.quarter_info
       dater = datetime.strptime(date, "%m-%d-%Y")
       quarter = assign_quarter(dater)
@@ -88,7 +92,7 @@ def issuer(request, slug):
       quartC = str(quartC).replace("%", " ")
       comp_list = [value for value in positions_list if value.quarter == quartC]
       for p in comp_list:
-         comp_data.append([p.manager, int(float(p.shares))]) 
+         comp_data.append([p.manager, int(float(p.value.replace(",","")))]) 
    else:
       quartC = ""  
 
@@ -98,16 +102,16 @@ def issuer(request, slug):
       if(quart != ""):
          positions_list = [value for value in positions_list if value.quarter == quart]
          for p in positions_list:
-            shares_data.append([p.manager, int(float(p.shares))]) 
+            shares_data.append([p.manager, int(float(p.value.replace(",","")))]) 
    else:
       quart = "All Quarters" 
       for p in positions_list:
          existing_managers = [row[0] for row in shares_data]
          if(p.manager in existing_managers):
             p_index = existing_managers.index(p.manager)
-            shares_data[p_index][1] = shares_data[p_index][1] + int(float(p.shares))
+            shares_data[p_index][1] = shares_data[p_index][1] + int(float(p.value.replace(",","")))
          else:
-            shares_data.append([p.manager, int(float(p.shares))])
+            shares_data.append([p.manager, int(float(p.value.replace(",","")))])
       
    positions_list = positions_list + comp_list
    return render(request, 'issuer.html', {'issuer': issuer, 
