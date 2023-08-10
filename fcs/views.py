@@ -18,10 +18,12 @@ def index(request):
 
 def manager(request, slug):
    quart = request.GET.get('q')
+   quartC = request.GET.get('c')
    fund_company = FundCompany.objects.get(cik_id = slug)
 
    positions = Filling.objects.filter(cik_id = slug)
    positions_list = []
+   perm_list = []
    for x in positions:
       cusip = x.cusip
       issuer = Issuer.objects.get(cusip = x.cusip).name
@@ -32,6 +34,7 @@ def manager(request, slug):
       dater = datetime.strptime(date, "%m-%d-%Y")
       quarter = assign_quarter(dater)
       positions_list.append(ManagerPositionsView(cusip, issuer,ticker, value, shares, date, quarter))
+      perm_list.append(ManagerPositionsView(cusip, issuer,ticker, value, shares, date, quarter))
    
    time_series = []
    if((quart is None) == False):
@@ -62,12 +65,30 @@ def manager(request, slug):
          else:
             new_row = [p.ticker] + [0.0] * (q_index - 1) + [int(float(p.value.replace(",","")))] + [0.0] * (len(time_series[0]) - (1 + q_index))
             time_series.append(new_row) 
-         
+
+   comp_list = []
+   if((quartC is None) == False):
+      quartC = str(quartC).replace("%", " ")
+      time_series[0].append(quartC)
+      for i in range(1, len(time_series)):
+         time_series[i].append(0.0)
+      comp_list = [value for value in perm_list if value.quarter == quartC]
+      existing_issuers = [row[0] for row in time_series]
+      for p in comp_list:
+         if(p.ticker in existing_issuers):
+            p_index = existing_issuers.index(p.ticker)
+            if(p.quarter == quartC):
+               time_series[p_index][2] = int(float(p.value.replace(",","")))    
+   else:
+      quartC = ""
+
+   positions_list = positions_list + comp_list
    return render(request, 'manager.html', {'fund_company': fund_company,
                                            'positions' : positions_list, 
                                            'quarters' : quarter_list,
                                            'quart': quart,
-                                           'time_series': time_series})
+                                           'time_series': time_series,
+                                           'quartC': quartC})
 
 def issuer(request, slug):
    quart = request.GET.get('q')

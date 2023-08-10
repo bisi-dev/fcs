@@ -78,9 +78,21 @@
       table thead tr th.sort-asc:after {
         content: "\25b4";
       }
-
       table thead tr th.sort-desc:after {
         content: "\25be";
+      }
+      .row {
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        justify-content: left; 
+      }
+      .block {
+        width: 45%;
+      }
+      .cellContainer {
+        width: 50%;
+        float: left;
       }
     </style>
 </head>
@@ -160,8 +172,26 @@
         </div>
       </div>
       <div class="tab-pane fade" id="pills-issuers" role="tabpanel" aria-labelledby="pills-issuers-tab">
-        <h1 class ="ml-2">{{quart}}</h1>
-        <div id="chart_all"></div>
+        <h1 class ="ml-2 pb-4 cellContainer">{{quart}}</h1>
+        {% if quart == "All Quarters" %}
+        {% else %}
+        <div class="pb-4 dropdown cellContainer">
+          <h1 class ="ml-2">{{quartC}}</h1>
+          <button onClick="drop()" class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Compare With
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            {% for quarter in quarters %}
+            <span class="dropdown-item" onclick="compare('{{quart}}' , '{{quarter}}', '{{fund_company.cik_id}}')" href="#">{{quarter}}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="shadow  bg-white">
+          <div class="row">
+            <div class="block" id="chart_all"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -176,6 +206,11 @@
     }
     function drop(){
       $(".dropdown-menu").show()
+    }
+    function compare(quart, quarter, cik) {
+      $(".dropdown-menu").toggle()
+      let newUrl = '/cik/' + cik  + '/?q=' + quart + '&c=' + quarter
+      window.location=newUrl
     }
   </script>
   {{ time_series|json_script:"time_series" }}
